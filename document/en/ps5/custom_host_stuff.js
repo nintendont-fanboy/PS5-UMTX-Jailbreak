@@ -6,6 +6,8 @@ async function runJailbreak() {
     document.getElementById("run-jb-parent").style.opacity = "0";
     document.getElementById("console-parent").style.opacity = "1";
 
+    window.jb_started = true;
+
     setTimeout(async () => {
         let wk_exploit_type = localStorage.getItem("wk_exploit_type");
         if (wk_exploit_type == "psfree") {
@@ -18,7 +20,6 @@ async function runJailbreak() {
 }
 
 function onload_setup() {
-
     if (document.documentElement.hasAttribute("manifest")) {
         add_cache_event_toasts();
     }
@@ -29,14 +30,69 @@ function onload_setup() {
     let redirector = document.getElementById("redirector-view");
     let center_view = document.getElementById("center-view");
 
-    let menu_overlay = document.getElementById("menu-overlay");
-    let menu = document.getElementById("menu-bar-wrapper");
-
     if (localStorage.getItem("wk_exploit_type") == null) {
         localStorage.setItem("wk_exploit_type", "psfree");
     }
 
-    create_redirector_buttons();
+    let isTransitionInProgress = false;
+
+    center_view.style.transition = "left 0.4s ease, opacity 0.25s ease";
+    center_view.style.pointerEvents = "auto";
+    center_view.style.opacity = "1";
+    redirector.style.pointerEvents = "none";
+    redirector.style.opacity = "0";
+
+    window.addEventListener('keydown', function (event) {
+        if (event.keyCode == 51 || event.keyCode == 118) {
+            // seems like the browser failes to load any new pages after the jailbreak...
+            if (isTransitionInProgress || window.jb_in_progress || window.jb_started) {
+                return;
+            }
+            isTransitionInProgress = true;
+            if (redirector.style.left == "-100%") {
+                redirector.style.left = "-30%";
+                setTimeout(() => {
+                    redirector.style.transition = "left 0.4s ease, opacity 0.25s ease";
+
+                    center_view.style.pointerEvents = "none";
+                    center_view.style.opacity = "0";
+                    redirector.style.pointerEvents = "auto";
+                    redirector.style.opacity = "1";
+
+                    redirector.style.left = "0";
+                    center_view.style.left = "30%";
+                    setTimeout(() => {
+                        center_view.style.transition = "none";
+                        center_view.style.left = "100%";
+                        isTransitionInProgress = false;
+                    }, 420);
+                }, 10);
+
+            } else {
+                center_view.style.left = "30%";
+
+                setTimeout(() => {
+                    center_view.style.transition = "left 0.4s ease, opacity 0.25s ease";
+
+                    center_view.style.pointerEvents = "auto";
+                    center_view.style.opacity = "1";
+                    redirector.style.pointerEvents = "none";
+                    redirector.style.opacity = "0";
+
+                    redirector.style.left = "-30%";
+                    center_view.style.left = "0";
+                    setTimeout(() => {
+                        redirector.style.transition = "none";
+                        redirector.style.left = "-100%";
+                        isTransitionInProgress = false;
+                    }, 420);
+                }, 10);
+
+
+            }
+
+        }
+    });
 }
 
 function redirectorGo() {
